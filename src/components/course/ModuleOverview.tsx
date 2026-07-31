@@ -6,11 +6,11 @@
  * The lesson is the visual priority; navigation is contextual (Section 3:
  * "visually prioritise the learning content rather than navigation").
  *
- * The assessment block below the video is where Phases 3–5 land: the player
- * gets wired up, then the lesson→quiz transition, then the quiz itself. What
- * exists today is the module context and the honest status of each piece.
+ * Flow (Phase 3): Video → VideoCompletion overlay (95%) → scroll to
+ * Knowledge Check section → Begin assessment (quiz engine Phase 4).
  */
 
+import { useState } from "react";
 import { notFound } from "next/navigation";
 import { CourseProgress } from "@/components/course/CourseProgress";
 import { CourseShell } from "@/components/course/CourseShell";
@@ -20,10 +20,16 @@ import { ModulePager } from "@/components/course/ModulePager";
 import { ModuleRequirements } from "@/components/course/ModuleRequirements";
 import { PersistenceNotice } from "@/components/course/PersistenceNotice";
 import { QuizUnavailable } from "@/components/course/QuizUnavailable";
-import { VideoSlot } from "@/components/course/VideoSlot";
+import { VideoAlreadyComplete } from "@/components/course/VideoCompletion";
+import { VideoLesson } from "@/components/course/VideoLesson";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { ArrowRightIcon, ChecklistIcon, ClockIcon, FlagIcon } from "@/components/ui/Icon";
+import {
+  ArrowRightIcon,
+  ChecklistIcon,
+  ClockIcon,
+  FlagIcon,
+} from "@/components/ui/Icon";
 import {
   getCourseStructure,
   getModuleById,
@@ -44,11 +50,18 @@ export function ModuleOverview({
   const structure = getCourseStructure(courseId);
   const courseModule = getModuleById(moduleId);
 
-  if (!structure || !courseModule || courseModule.courseId !== courseId) notFound();
+  if (!structure || !courseModule || courseModule.courseId !== courseId)
+    notFound();
 
   const completion = getModuleCompletion(state, courseModule);
   const neighbours = getModuleNeighbours(courseId, moduleId);
   const quizFacts = courseModule.quiz ? getQuizFacts(courseModule.quiz) : null;
+
+  // Local state for Phase 4 "coming soon" notice when Begin is clicked early
+  const [showPhase4Notice, setShowPhase4Notice] = useState(false);
+
+  const loading = status === "loading";
+  const videoAlreadyComplete = !loading && completion.videoComplete;
 
   return (
     <CourseShell
@@ -83,10 +96,26 @@ export function ModuleOverview({
       />
 
       <div className="mt-7">
-        <VideoSlot module={courseModule} />
+        <VideoLesson
+          module={courseModule}
+          courseId={courseId}
+          nextModuleId={neighbours.next?.id ?? null}
+        />
+
+        {/* Non-overlay completion banner for returning learners */}
+        {videoAlreadyComplete && (
+          <VideoAlreadyComplete
+            module={courseModule}
+            courseId={courseId}
+            nextModuleId={neighbours.next?.id ?? null}
+          />
+        )}
       </div>
 
-      <section className="mt-10 border-t border-border pt-8">
+      <section
+        id="knowledge-check"
+        className="mt-10 scroll-mt-24 border-t border-border pt-8"
+      >
         <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted">
           Knowledge check
         </h2>
@@ -136,23 +165,47 @@ export function ModuleOverview({
                 <FlagIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-strong" />
                 <span>
                   <span className="numeric">{quizFacts.flaggedCount}</span> of
-                  these {quizFacts.flaggedCount === 1 ? "questions is" : "questions are"}{" "}
+                  these{" "}
+                  {quizFacts.flaggedCount === 1
+                    ? "questions is"
+                    : "questions are"}{" "}
                   a discussion question rather than a graded one, and{" "}
-                  {quizFacts.flaggedCount === 1 ? "does" : "do"} not affect your
-                  score.
+                  {quizFacts.flaggedCount === 1 ? "does" : "do"} not affect
+                  your score.
                 </span>
               </p>
             ) : null}
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Button size="lg" disabled>
-                Begin assessment
-                <ArrowRightIcon className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-muted">
-                The quiz engine is Phase 4 of the build.
-              </span>
+              {completion.videoComplete ? (
+                <Button
+                  size="lg"
+                  onClick={() => setShowPhase4Notice((v) => !v)}
+                >
+                  Begin assessment
+                  <ArrowRightIcon className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button size="lg" disabled aria-disabled="true">
+                  Begin assessment
+                  <ArrowRightIcon className="h-4 w-4" />
+                </Button>
+              )}
+
+              {!completion.videoComplete && (
+                <span className="text-sm text-muted">
+                  Watch the lesson first to unlock the assessment.
+                </span>
+              )}
             </div>
+
+            {showPhase4Notice && completion.videoComplete && (
+              <p className="mt-4 rounded-control border border-accent/30 bg-accent-tint px-4 py-3 text-sm text-ink">
+                The interactive quiz engine is built in Phase 4. Your lesson
+                completion has been recorded — the assessment will be available
+                when Phase 4 is deployed.
+              </p>
+            )}
           </Card>
         ) : (
           <div className="mt-4">

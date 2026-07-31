@@ -121,6 +121,102 @@
 }
 
 /* ---------------------------------------------------------------------------
+ * VIDEO SCRUBBER — styled range input used in VideoLesson.
+ * The --seek CSS variable (0%–100%) is set inline by the component.
+ * ------------------------------------------------------------------------- */
+@utility video-scrubber {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+  background: linear-gradient(
+    to right,
+    rgba(255 255 255 / 0.9) var(--seek, 0%),
+    rgba(255 255 255 / 0.3) var(--seek, 0%)
+  );
+  height: 3px;
+  border-radius: 2px;
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    margin-top: -4.5px;
+    transition: transform 150ms ease;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  }
+
+  &:hover::-webkit-slider-thumb,
+  &:focus::-webkit-slider-thumb {
+    transform: scale(1.25);
+  }
+
+  &::-moz-range-track {
+    background: transparent;
+    height: 3px;
+    border-radius: 2px;
+  }
+
+  &::-moz-range-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  }
+
+  &::-moz-range-progress {
+    background: rgba(255 255 255 / 0.9);
+    height: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* Volume slider inside the video controls — thinner variant */
+@utility volume-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+  background: linear-gradient(
+    to right,
+    rgba(255 255 255 / 0.85) var(--seek, 100%),
+    rgba(255 255 255 / 0.25) var(--seek, 100%)
+  );
+  height: 2px;
+  border-radius: 2px;
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    margin-top: -4px;
+    transition: transform 150ms ease;
+  }
+
+  &:hover::-webkit-slider-thumb {
+    transform: scale(1.2);
+  }
+
+  &::-moz-range-thumb {
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    border: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
  * REDUCED MOTION — brief Section 24. Motion components also read this via
  * useReducedMotion(); this is the belt-and-braces CSS backstop.
  * ------------------------------------------------------------------------- */

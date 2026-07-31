@@ -110,6 +110,53 @@ export const LockIcon = (props: IconProps) => (
   </Svg>
 );
 
+export const PauseIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M7 5v14M17 5v14" />
+  </Svg>
+);
+
+export const VolumeHighIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M9.5 8H4.5v8H9.5l6 5V3L9.5 8Z" fill="currentColor" strokeWidth={0} />
+    <path d="M16 8.5a5.5 5.5 0 0 1 0 7" />
+    <path d="M18.5 6a9 9 0 0 1 0 12" />
+  </Svg>
+);
+
+export const VolumeMuteIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M9.5 8H4.5v8H9.5l6 5V3L9.5 8Z" fill="currentColor" strokeWidth={0} />
+    <path d="M16.5 9.5 20 13m0-3.5-3.5 3.5" />
+  </Svg>
+);
+
+export const ReplayIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M4.5 12a7.5 7.5 0 1 0 1.75-4.77" />
+    <path d="M4.5 4v4h4" />
+  </Svg>
+);
+
+export const FullscreenEnterIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M3 8V3h5M3 16v5h5M21 8V3h-5M21 16v5h-5" />
+  </Svg>
+);
+
+export const FullscreenExitIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M8 3v5H3M8 21v-5H3M16 3v5h5M16 21v-5h5" />
+  </Svg>
+);
+
+export const CaptionsIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <rect x="2.5" y="5.5" width="19" height="13" rx="2" />
+    <path d="M7 10.5h3.5M7 13.5h5.5M13 10.5h3.5M13 13.5h3.5" />
+  </Svg>
+);
+
 /** Deliberately not a stethoscope. Two ticks on a scale — the measurement
  *  motif that runs through the whole product. */
 export const BrandMark = ({ className = "h-5 w-5" }: { className?: string }) => (
