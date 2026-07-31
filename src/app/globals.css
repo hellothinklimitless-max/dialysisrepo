@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * DESIGN TOKENS — 00-README-START-HERE.md Section 5
+ *
+ * Six named colors + border + muted text. Everything in the product derives
+ * from these; components must not introduce new hues. The derived *-tint and
+ * *-strong values below are lighter/darker steps of the SAME six hues (used
+ * for feedback surfaces and hover states), not additional colors.
+ *
+ * No gradients as a default surface treatment. The only sanctioned gradient
+ * moment in the whole system is the score ring fill (Phase 6).
+ * ------------------------------------------------------------------------- */
+@theme {
+  /* Core palette */
+  --color-surface: #fafaf8; /* warm-neutral off-white base */
+  --color-ink: #14181f; /* near-black graphite */
+  --color-primary: #1d4e4a; /* deep teal-pine */
+  --color-accent: #c98a3e; /* warm amber-gold */
+  --color-success: #2f8f6b; /* muted clinical green */
+  --color-error: #c4483a; /* muted brick red */
+  --color-border: #e7e5e0; /* neutral hairline */
+  --color-muted: #6b6f76; /* secondary text */
+
+  /* Derived steps of the same hues */
+  --color-raised: #ffffff;
+  --color-sunken: #f3f2ee;
+  --color-primary-strong: #163b38;
+  --color-primary-tint: #ecf1ef;
+  --color-accent-tint: #faf2e6;
+  --color-accent-strong: #a86f2c;
+  --color-success-tint: #ebf4f0;
+  --color-error-tint: #faedeb;
+  --color-border-strong: #d6d3cc;
+
+  /* Shape — deliberately in-between: not sharp, not pill */
+  --radius-card: 12px;
+  --radius-control: 8px;
+
+  /* Type — two roles only */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* Soft elevation — low-contrast, never a drop-shadow "card float" look */
+  --shadow-subtle: 0 1px 2px rgb(20 24 31 / 0.04);
+  --shadow-raised: 0 1px 2px rgb(20 24 31 / 0.04), 0 8px 24px -12px
+    rgb(20 24 31 / 0.12);
+
+  /* Motion — fast, spring-adjacent easing (brief Section 24) */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  /* Tailwind v4 defaults border-color to currentColor; pin it to our hairline. */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible focus everywhere (brief Section 28). :focus-visible so pointer
+     users don't see rings, keyboard users always do. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Headings default to tighter tracking; hierarchy comes from weight/size,
+     never from switching families. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * SIGNATURE: the monospace numeric face.
+ * Used EXCLUSIVELY for numbers — scores, percentages, counters, timers, XP,
+ * durations. Never for prose. (README Section 5.)
+ * ------------------------------------------------------------------------- */
+@utility numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Screen-reader-only text that becomes visible when focused (skip links). */
+@utility sr-focusable {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform 150ms var(--ease-out-quint);
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * REDUCED MOTION — brief Section 24. Motion components also read this via
+ * useReducedMotion(); this is the belt-and-braces CSS backstop.
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
