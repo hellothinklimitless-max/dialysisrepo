@@ -10,7 +10,6 @@
 import Link from "next/link";
 import { CourseShell } from "@/components/course/CourseShell";
 import { PersistenceNotice } from "@/components/course/PersistenceNotice";
-import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ArrowRightIcon, ChecklistIcon, ClockIcon } from "@/components/ui/Icon";
 import { TickProgress } from "@/components/ui/TickProgress";
@@ -28,15 +27,14 @@ import { getCourseProgress } from "@/lib/progress-selectors";
 export function CourseCatalog() {
   const { state, status } = useLearnerProgress();
   const loading = status === "loading";
-  // Aggregate runtimes inherit the estimate caveat of their parts.
   const estimated = durationsAreUnverified();
 
   const totalModules = courses.reduce(
     (total, course) => total + (getCourseStructure(course.id)?.modules.length ?? 0),
     0,
   );
-  const totalQuestions = courses.reduce(
-    (total, course) => total + getCourseQuestionCount(course.id),
+  const totalMinutes = courses.reduce(
+    (total, course) => total + Math.round(getCourseRuntimeSeconds(course.id) / 60),
     0,
   );
 
@@ -44,7 +42,8 @@ export function CourseCatalog() {
     <CourseShell chrome="full">
       <PersistenceNotice />
 
-      <section className="border-b border-border pb-10">
+      {/* Hero */}
+      <section className="border-b border-border pb-12">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent-strong">
           Clinical education
         </p>
@@ -56,41 +55,37 @@ export function CourseCatalog() {
           question knowing more than you did before answering it.
         </p>
 
-        <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
-          <div>
-            <dt className="text-xs uppercase tracking-[0.08em] text-muted">
-              Courses
-            </dt>
-            <dd className="numeric mt-1 text-2xl font-semibold text-ink">
+        {/* Platform stats */}
+        <div className="mt-10 grid grid-cols-3 gap-3 sm:max-w-sm">
+          <div className="rounded-card border border-border bg-raised px-4 py-4">
+            <p className="numeric text-2xl font-semibold text-ink">
               {courses.length}
-            </dd>
+            </p>
+            <p className="mt-0.5 text-xs text-muted">Courses</p>
           </div>
-          <div>
-            <dt className="text-xs uppercase tracking-[0.08em] text-muted">
-              Modules
-            </dt>
-            <dd className="numeric mt-1 text-2xl font-semibold text-ink">
+          <div className="rounded-card border border-border bg-raised px-4 py-4">
+            <p className="numeric text-2xl font-semibold text-ink">
               {totalModules}
-            </dd>
+            </p>
+            <p className="mt-0.5 text-xs text-muted">Lessons</p>
           </div>
-          <div>
-            <dt className="text-xs uppercase tracking-[0.08em] text-muted">
-              Questions
-            </dt>
-            <dd className="numeric mt-1 text-2xl font-semibold text-ink">
-              {totalQuestions}
-            </dd>
+          <div className="rounded-card border border-border bg-raised px-4 py-4">
+            <p className="numeric text-2xl font-semibold text-ink">
+              {estimated ? "~" : ""}{totalMinutes}
+            </p>
+            <p className="mt-0.5 text-xs text-muted">Minutes</p>
           </div>
-        </dl>
+        </div>
       </section>
 
+      {/* Course grid */}
       <section className="pt-10">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted">
-          Courses
+        <h2 className="mb-5 text-sm font-semibold uppercase tracking-[0.08em] text-muted">
+          All courses
         </h2>
 
-        <ul className="mt-5 grid gap-4 md:grid-cols-2">
-          {courses.map((course) => {
+        <ul className="grid gap-5 md:grid-cols-2">
+          {courses.map((course, courseIndex) => {
             const structure = getCourseStructure(course.id);
             if (!structure) return null;
 
@@ -102,21 +97,21 @@ export function CourseCatalog() {
               progress.nominalModules - progress.availableModules,
             );
             const started = !loading && progress.completedModules > 0;
+            const percentDone = loading ? 0 : progress.percentComplete;
 
             return (
               <li key={course.id} className="min-w-0">
-                <Card interactive className="group relative flex h-full flex-col p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-semibold leading-snug text-ink">
-                      <Link
-                        href={`/courses/${course.id}`}
-                        className="after:absolute after:inset-0 after:rounded-card"
-                      >
-                        {course.title}
-                      </Link>
-                    </h3>
+                <div className="group relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-raised shadow-subtle transition-[border-color,box-shadow] duration-200 ease-[var(--ease-out-quint)] hover:border-border-strong hover:shadow-raised">
+                  {/* Course number stripe */}
+                  <div className="flex items-center gap-3 border-b border-border px-5 py-3">
+                    <span className="numeric flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                      {courseIndex + 1}
+                    </span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">
+                      Course {courseIndex + 1}
+                    </span>
                     {structure.isContentIncomplete ? (
-                      <Badge tone="outline" className="shrink-0">
+                      <Badge tone="outline" className="ml-auto shrink-0">
                         <span className="numeric">
                           {structure.modules.length}/
                           {structure.nominalModuleCount}
@@ -126,54 +121,73 @@ export function CourseCatalog() {
                     ) : null}
                   </div>
 
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
-                    {course.description}
-                  </p>
+                  {/* Body */}
+                  <div className="flex flex-1 flex-col px-5 py-5">
+                    <h3 className="text-lg font-semibold leading-snug text-ink">
+                      <Link
+                        href={`/courses/${course.id}`}
+                        className="after:absolute after:inset-0 after:rounded-card"
+                      >
+                        {course.title}
+                      </Link>
+                    </h3>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
-                    <span className="inline-flex items-center gap-1.5">
-                      <ClockIcon className="h-3.5 w-3.5" />
-                      <span className="numeric">
-                        {estimated ? "~" : ""}
-                        {formatMinutes(runtime)}
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
+                      {course.description}
+                    </p>
+
+                    {/* Metadata row */}
+                    <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
+                      <span className="inline-flex items-center gap-1.5">
+                        <ClockIcon className="h-3.5 w-3.5" />
+                        <span className="numeric">
+                          {estimated ? "~" : ""}
+                          {formatMinutes(runtime)}
+                        </span>
+                        {estimated ? (
+                          <span className="sr-only">(estimated)</span>
+                        ) : null}
                       </span>
-                      {estimated ? (
-                        <span className="sr-only">(estimated)</span>
-                      ) : null}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <ChecklistIcon className="h-3.5 w-3.5" />
+                      <span className="inline-flex items-center gap-1.5">
+                        <ChecklistIcon className="h-3.5 w-3.5" />
+                        <span>
+                          <span className="numeric">{questionCount}</span>{" "}
+                          questions
+                        </span>
+                      </span>
                       <span>
-                        <span className="numeric">{questionCount}</span>{" "}
-                        questions
+                        <span className="numeric">{structure.modules.length}</span>{" "}
+                        {structure.modules.length === 1 ? "lesson" : "lessons"}
                       </span>
-                    </span>
-                    <span>
-                      <span className="numeric">{structure.modules.length}</span>{" "}
-                      {structure.modules.length === 1 ? "module" : "modules"}
-                    </span>
+                    </div>
                   </div>
 
-                  <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
-                    <TickProgress
-                      className="flex-1"
-                      label={`${course.title} progress`}
-                      value={loading ? 0 : progress.completedModules}
-                      max={progress.availableModules}
-                      ghostCount={ghostCount}
-                      size="sm"
-                      valueText={
-                        loading
-                          ? "Loading progress"
-                          : `${progress.completedModules} of ${progress.availableModules} modules complete`
-                      }
-                    />
-                    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-primary">
-                      {started ? "Resume" : "Start"}
+                  {/* Progress footer */}
+                  <div className="border-t border-border px-5 py-4">
+                    <div className="mb-2.5 flex items-center justify-between gap-2">
+                      <TickProgress
+                        className="flex-1"
+                        label={`${course.title} progress`}
+                        value={loading ? 0 : progress.completedModules}
+                        max={progress.availableModules}
+                        ghostCount={ghostCount}
+                        size="sm"
+                        valueText={
+                          loading
+                            ? "Loading progress"
+                            : `${progress.completedModules} of ${progress.availableModules} lessons complete`
+                        }
+                      />
+                      <span className="numeric shrink-0 text-xs font-medium text-muted">
+                        {loading ? "—" : `${percentDone}%`}
+                      </span>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors group-hover:text-primary-strong">
+                      {started ? "Continue" : "Start course"}
                       <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 ease-[var(--ease-out-quint)] group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0" />
                     </span>
                   </div>
-                </Card>
+                </div>
               </li>
             );
           })}
@@ -183,7 +197,7 @@ export function CourseCatalog() {
           <p className="mt-8 max-w-2xl border-t border-border pt-5 text-xs leading-relaxed text-muted">
             Lesson durations marked with{" "}
             <span className="numeric text-ink">~</span> are estimated from each
-            lesson’s transcript and have not been verified against the source
+            lesson&apos;s transcript and have not been verified against the source
             video. Run{" "}
             <code className="numeric rounded-[4px] bg-sunken px-1 py-0.5 text-[0.7rem] text-ink">
               npm run fetch:durations

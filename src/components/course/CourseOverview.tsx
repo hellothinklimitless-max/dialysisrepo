@@ -69,30 +69,31 @@ export function CourseOverview({ courseId }: { courseId: string }) {
           {course.description}
         </p>
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
-          <span>
-            <span className="numeric font-medium text-ink">
+        {/* Stats strip */}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <div className="inline-flex items-center gap-2 rounded-control border border-border bg-raised px-3 py-2 text-sm">
+            <span className="numeric font-semibold text-ink">
               {modules.length}
-            </span>{" "}
-            {modules.length === 1 ? "module" : "modules"}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <ClockIcon className="h-4 w-4" />
-            <span className="numeric">
+            </span>
+            <span className="text-muted">
+              {modules.length === 1 ? "lesson" : "lessons"}
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-control border border-border bg-raised px-3 py-2 text-sm">
+            <ClockIcon className="h-3.5 w-3.5 text-muted" />
+            <span className="numeric font-semibold text-ink">
               {durationsAreUnverified() ? "~" : ""}
               {formatMinutes(runtime)}
             </span>
-            <span>of lessons</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <ChecklistIcon className="h-4 w-4" />
-            <span>
-              <span className="numeric font-medium text-ink">
-                {questionCount}
-              </span>{" "}
-              assessment questions
+            <span className="text-muted">of lessons</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-control border border-border bg-raised px-3 py-2 text-sm">
+            <ChecklistIcon className="h-3.5 w-3.5 text-muted" />
+            <span className="numeric font-semibold text-ink">
+              {questionCount}
             </span>
-          </span>
+            <span className="text-muted">questions</span>
+          </div>
         </div>
 
         {resumeModule ? (
@@ -106,7 +107,7 @@ export function CourseOverview({ courseId }: { courseId: string }) {
             </ButtonLink>
             <p className="mt-2.5 text-sm text-muted">
               {started ? "Up next: " : "Starting with: "}
-              <span className="text-ink">{resumeModule.title}</span>
+              <span className="font-medium text-ink">{resumeModule.title}</span>
             </p>
           </div>
         ) : null}
@@ -119,16 +120,23 @@ export function CourseOverview({ courseId }: { courseId: string }) {
           </div>
         ) : null}
 
-        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted">
-          Modules
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted">
+            Lessons
+          </h2>
+          {!loading && (
+            <span className="numeric text-xs text-muted">
+              {progress.completedModules}/{progress.availableModules} complete
+            </span>
+          )}
+        </div>
 
         {modules.length === 0 ? (
           <p className="mt-4 rounded-card border border-dashed border-border-strong p-8 text-center text-sm text-muted">
             No lessons are available in this course yet.
           </p>
         ) : (
-          <ul className="mt-4 flex flex-col gap-3">
+          <ul className="flex flex-col gap-3">
             {modules.map((module) => (
               <li key={module.id}>
                 <ModuleListItem module={module} courseId={courseId} />

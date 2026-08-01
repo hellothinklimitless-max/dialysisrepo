@@ -17,40 +17,32 @@ export function AnswerOption({
   text: string;
   selected: boolean;
   locked: boolean;
-  /** Set after submission; null while still answering. */
   outcome: ResponseOutcome | null;
-  /** Whether this option is the correct answer — shown post-submit. */
   isCorrect: boolean;
   onSelect: () => void;
 }) {
   const label = LABELS[index];
 
-  // Visual state resolution
-  let ringClass = "ring-border";
-  let bgClass = "bg-raised";
-  let labelBgClass = "bg-sunken text-muted";
-  let labelTextClass = "";
+  let containerClass: string;
+  let labelClass: string;
 
   if (locked) {
     if (isCorrect) {
-      ringClass = "ring-success";
-      bgClass = "bg-success-tint";
-      labelBgClass = "bg-success/15";
-      labelTextClass = "text-success";
+      containerClass = "ring-success bg-success-tint";
+      labelClass = "bg-success/15 text-success font-semibold";
     } else if (selected && outcome === "incorrect") {
-      ringClass = "ring-error";
-      bgClass = "bg-error-tint";
-      labelBgClass = "bg-error/15";
-      labelTextClass = "text-error";
+      containerClass = "ring-error bg-error-tint";
+      labelClass = "bg-error/15 text-error font-semibold";
     } else {
-      ringClass = "ring-border";
-      bgClass = "bg-raised opacity-60";
+      containerClass = "ring-border bg-raised opacity-50";
+      labelClass = "bg-sunken text-muted";
     }
   } else if (selected) {
-    ringClass = "ring-primary";
-    bgClass = "bg-primary-tint";
-    labelBgClass = "bg-primary/15";
-    labelTextClass = "text-primary";
+    containerClass = "ring-primary bg-primary-tint shadow-subtle";
+    labelClass = "bg-primary/15 text-primary font-semibold";
+  } else {
+    containerClass = "ring-border bg-raised hover:ring-border-strong hover:bg-sunken/50";
+    labelClass = "bg-sunken text-muted";
   }
 
   return (
@@ -60,17 +52,15 @@ export function AnswerOption({
       onClick={locked ? undefined : onSelect}
       disabled={locked}
       className={[
-        "group flex w-full items-start gap-3 rounded-card p-4 text-left ring-1 transition-all duration-150",
-        ringClass,
-        bgClass,
-        locked ? "cursor-default" : "cursor-pointer hover:ring-primary/50",
+        "group flex w-full items-start gap-4 rounded-card p-4 text-left ring-1 transition-all duration-150",
+        containerClass,
+        locked ? "cursor-default" : "cursor-pointer",
       ].join(" ")}
     >
       <span
         className={[
-          "numeric mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-xs font-semibold transition-colors duration-150",
-          labelBgClass,
-          labelTextClass,
+          "numeric mt-[1px] flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-xs transition-colors duration-150",
+          labelClass,
         ].join(" ")}
         aria-hidden="true"
       >

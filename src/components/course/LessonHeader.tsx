@@ -4,16 +4,11 @@
  * LESSON HEADER — brief Section 3
  * ===============================
  * Course title, module title, module number, estimated duration, assessment
- * size. The example the brief gives is:
- *
- *   Dialysis Equipment & Machine Operation
- *   Module 03 of 08
- *   12 min lesson · 8 question assessment
- *
- * Numbers use the mono face; nothing else does.
+ * size. Numbers use the mono face; nothing else does.
  */
 
 import Link from "next/link";
+import { TickProgress } from "@/components/ui/TickProgress";
 import { DurationLabel } from "@/components/course/DurationLabel";
 import { ModuleStatusBadges } from "@/components/course/ModuleStatus";
 import { formatModuleNumber } from "@/lib/format";
@@ -40,12 +35,37 @@ export function LessonHeader({
 
   return (
     <header>
-      <Link
-        href={`/courses/${course.id}`}
-        className="text-xs font-semibold uppercase tracking-[0.12em] text-accent-strong hover:text-accent"
-      >
-        {course.title}
-      </Link>
+      {/* Course breadcrumb + position */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href={`/courses/${course.id}`}
+          className="text-xs font-semibold uppercase tracking-[0.12em] text-accent-strong hover:text-accent"
+        >
+          {course.title}
+        </Link>
+
+        <div className="flex items-center gap-3">
+          <TickProgress
+            value={position - 1}
+            max={total}
+            mode="segments"
+            tone="primary"
+            size="sm"
+            label={`Module ${position} of ${total}`}
+            valueText={`${position - 1} of ${total} modules completed`}
+          />
+          <span className="numeric text-xs text-muted">
+            {formatModuleNumber(position)}&nbsp;/&nbsp;{formatModuleNumber(total)}
+          </span>
+        </div>
+      </div>
+
+      {/* Topic chip */}
+      {quizFacts?.topics[0] ? (
+        <span className="mt-3 inline-block rounded-[5px] bg-accent-tint px-2.5 py-1 text-xs font-medium text-accent-strong">
+          {quizFacts.topics[0]}
+        </span>
+      ) : null}
 
       <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-[2.5rem]">
         {module.title}
