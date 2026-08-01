@@ -157,6 +157,12 @@ export const CaptionsIcon = (props: IconProps) => (
   </Svg>
 );
 
+export const XIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M18 6 6 18M6 6l12 12" />
+  </Svg>
+);
+
 /** Deliberately not a stethoscope. Two ticks on a scale — the measurement
  *  motif that runs through the whole product. */
 export const BrandMark = ({ className = "h-5 w-5" }: { className?: string }) => (

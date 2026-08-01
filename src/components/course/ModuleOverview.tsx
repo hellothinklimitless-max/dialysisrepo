@@ -6,11 +6,10 @@
  * The lesson is the visual priority; navigation is contextual (Section 3:
  * "visually prioritise the learning content rather than navigation").
  *
- * Flow (Phase 3): Video → VideoCompletion overlay (95%) → scroll to
- * Knowledge Check section → Begin assessment (quiz engine Phase 4).
+ * Flow (Phase 3 + 4): Video → VideoCompletion overlay (95%) → scroll to
+ * Knowledge Check section → QuizIntro → QuizEngine (Phase 4).
  */
 
-import { useState } from "react";
 import { notFound } from "next/navigation";
 import { CourseProgress } from "@/components/course/CourseProgress";
 import { CourseShell } from "@/components/course/CourseShell";
@@ -22,6 +21,8 @@ import { PersistenceNotice } from "@/components/course/PersistenceNotice";
 import { QuizUnavailable } from "@/components/course/QuizUnavailable";
 import { VideoAlreadyComplete } from "@/components/course/VideoCompletion";
 import { VideoLesson } from "@/components/course/VideoLesson";
+import { QuizEngine } from "@/components/quiz/QuizEngine";
+import { QuizIntro } from "@/components/quiz/QuizIntro";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
@@ -46,7 +47,7 @@ export function ModuleOverview({
   courseId: string;
   moduleId: string;
 }) {
-  const { state, status } = useLearnerProgress();
+  const { state, status, actions } = useLearnerProgress();
   const structure = getCourseStructure(courseId);
   const courseModule = getModuleById(moduleId);
 
@@ -57,11 +58,61 @@ export function ModuleOverview({
   const neighbours = getModuleNeighbours(courseId, moduleId);
   const quizFacts = courseModule.quiz ? getQuizFacts(courseModule.quiz) : null;
 
-  // Local state for Phase 4 "coming soon" notice when Begin is clicked early
-  const [showPhase4Notice, setShowPhase4Notice] = useState(false);
-
   const loading = status === "loading";
   const videoAlreadyComplete = !loading && completion.videoComplete;
+
+  // Quiz intro mode: video complete, quiz exists, no active attempt in progress
+  // and not yet showing the engine (pre-start state)
+  const showQuizIntro =
+    !loading &&
+    completion.videoComplete &&
+    courseModule.quiz !== null &&
+    quizFacts !== null &&
+    !completion.hasActiveAttempt &&
+    completion.attemptCount === 0;
+
+  // Show quiz engine when an active attempt is in progress
+  const showQuizEngine = !loading && completion.hasActiveAttempt;
+
+  // Show results screen after an attempt completes (no active attempt, but has history)
+  // This is handled inside QuizEngine itself (it detects no activeAttempt + attempts.length > 0)
+  const showQuizResults =
+    !loading &&
+    !completion.hasActiveAttempt &&
+    completion.attemptCount > 0 &&
+    courseModule.quiz !== null;
+
+  // If quiz engine or results should show, render full-screen quiz mode
+  if (showQuizEngine || showQuizResults) {
+    return (
+      <QuizEngine
+        module={courseModule}
+        quiz={courseModule.quiz!}
+        courseId={courseId}
+        nextModuleId={neighbours.next?.id ?? null}
+        onExit={() => actions.abandonQuiz(moduleId)}
+      />
+    );
+  }
+
+  // Quiz intro screen — shown after video completes but before first attempt
+  if (showQuizIntro) {
+    return (
+      <QuizIntro
+        module={courseModule}
+        quizFacts={quizFacts!}
+        attemptNumber={1}
+        onBegin={() => {
+          actions.startQuiz(courseModule);
+        }}
+        onExit={() => {
+          /* Do nothing — intro is only shown after video completes.
+             A dedicated "back to lesson" link could navigate back to
+             the lesson section, but for now intro is the landing. */
+        }}
+      />
+    );
+  }
 
   return (
     <CourseShell
@@ -180,7 +231,9 @@ export function ModuleOverview({
               {completion.videoComplete ? (
                 <Button
                   size="lg"
-                  onClick={() => setShowPhase4Notice((v) => !v)}
+                  onClick={() => {
+                    actions.startQuiz(courseModule);
+                  }}
                 >
                   Begin assessment
                   <ArrowRightIcon className="h-4 w-4" />
@@ -198,14 +251,6 @@ export function ModuleOverview({
                 </span>
               )}
             </div>
-
-            {showPhase4Notice && completion.videoComplete && (
-              <p className="mt-4 rounded-control border border-accent/30 bg-accent-tint px-4 py-3 text-sm text-ink">
-                The interactive quiz engine is built in Phase 4. Your lesson
-                completion has been recorded — the assessment will be available
-                when Phase 4 is deployed.
-              </p>
-            )}
           </Card>
         ) : (
           <div className="mt-4">
